@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkDrop - Submit URL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LinkDrop</h1>
+            <p class="subtitle">Submit a URL to queue for download</p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <div class="name-section">
+                {% if user_name %}
+                <div class="user-greeting">
+                    <span>Hello, <strong>{{ user_name }}</strong></span>
+                    <button type="button" class="btn btn-small btn-ghost" onclick="toggleRename()">Rename</button>
+                </div>
+                <form method="POST" action="{{ url_for('set_name') }}" id="renameForm" class="rename-form hidden">
+                    <input type="text" name="name" value="{{ user_name }}" placeholder="Enter your name" required>
+                    <button type="submit" class="btn btn-small">Save</button>
+                    <button type="button" class="btn btn-small btn-ghost" onclick="toggleRename()">Cancel</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('set_name') }}" class="name-form">
+                    <input type="text" name="name" placeholder="Enter your name" required>
+                    <button type="submit" class="btn btn-small">Set Name</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{{ url_for('submit') }}" class="submit-form">
+                <div class="form-group">
+                    <label for="url">URL</label>
+                    <input type="url" id="url" name="url" placeholder="https://example.com/video.mp4" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="note">Note (optional)</label>
+                    <textarea id="note" name="note" placeholder="Any additional info..." rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Link</button>
+            </form>
+
+            {% if links %}
+            <div class="my-links">
+                <h2>Your Links</h2>
+                <div class="links-list">
+                    {% for link in links %}
+                    <div class="link-item">
+                        <div class="link-url">{{ link.url }}</div>
+                        {% if link.note %}
+                        <div class="link-note">{{ link.note }}</div>
+                        {% endif %}
+                        <div class="link-meta">
+                            <span class="badge badge-{{ link.status }}">{{ link.status }}</span>
+                            <span class="link-date">{{ link.submitted_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        {% if link.download_path %}
+                        <div class="link-download">
+                            <a href="{{ link.download_path }}" target="_blank" class="btn btn-download-link">Download File</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <footer>
+            <a href="{{ url_for('login') }}" class="admin-link">Admin Login</a>
+        </footer>
+    </div>
+
+    <script>
+    function toggleRename() {
+        const greeting = document.querySelector('.user-greeting');
+        const form = document.getElementById('renameForm');
+        greeting.classList.toggle('hidden');
+        form.classList.toggle('hidden');
+    }
+    </script>
+</body>
+</html>

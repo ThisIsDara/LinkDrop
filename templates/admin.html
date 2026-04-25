@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkDrop - Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <div class="header-top">
+                <h1>LinkDrop <span class="header-accent">Admin</span></h1>
+                <div class="header-actions">
+                    <a href="{{ url_for('logout') }}" class="btn btn-small">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="stats-bar">
+            <div class="stat stat-pending">
+                <span class="stat-value">{{ stats.pending }}</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="stat stat-downloading">
+                <span class="stat-value">{{ stats.downloading }}</span>
+                <span class="stat-label">Downloading</span>
+            </div>
+            <div class="stat stat-done">
+                <span class="stat-value">{{ stats.done }}</span>
+                <span class="stat-label">Done</span>
+            </div>
+            <div class="stat stat-failed">
+                <span class="stat-value">{{ stats.failed }}</span>
+                <span class="stat-label">Failed</span>
+            </div>
+            <div class="stat stat-total">
+                <span class="stat-value">{{ stats.total }}</span>
+                <span class="stat-label">Total</span>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <form method="GET" action="{{ url_for('admin') }}" class="filter-form">
+                <input type="text" name="search" placeholder="Search URL or note..." value="{{ search }}" class="filter-input">
+                <select name="status" class="filter-select">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="downloading" {% if status_filter == 'downloading' %}selected{% endif %}>Downloading</option>
+                    <option value="done" {% if status_filter == 'done' %}selected{% endif %}>Done</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+                <button type="submit" class="btn btn-small">Filter</button>
+                <a href="{{ url_for('admin') }}" class="btn btn-small btn-ghost">Clear</a>
+            </form>
+            <a href="{{ url_for('submit') }}" class="btn btn-small">New Submit</a>
+        </div>
+
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>URL</th>
+                        <th>Note</th>
+                        <th>Status</th>
+                        <th>Path</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in links %}
+                    <tr>
+                        <td class="cell-id">#{{ link.id }}</td>
+                        <td class="cell-url">
+                            <span class="url-text" title="{{ link.url }}">{{ link.url }}</span>
+                        </td>
+                        <td class="cell-note">
+                            {% if link.note %}
+                            <span class="note-text">{{ link.note }}</span>
+                            {% else %}
+                            <span class="note-empty">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="cell-status">
+                            <span class="badge badge-{{ link.status }}">{{ link.status }}</span>
+                        </td>
+                        <td class="cell-path">
+                            {% if link.download_path %}
+                            <a href="{{ link.download_path }}" target="_blank" class="path-link" title="{{ link.download_path }}">{{ link.download_path.split('/')[-1] }}</a>
+                            {% else %}
+                            <button type="button" class="btn btn-action btn-path" onclick="openPathModal({{ link.id }}, '{{ link.download_path }}')">Set Path</button>
+                            {% endif %}
+                        </td>
+                        <td class="cell-date">
+                            {{ link.submitted_at.strftime('%Y-%m-%d %H:%M') if link.submitted_at else '-' }}
+                        </td>
+                        <td class="cell-actions">
+                            <div class="action-buttons">
+                                <form method="POST" action="{{ url_for('download_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-download" title="Download Now">DL</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('mark_done', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-done" title="Mark Done">OK</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('retry_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-retry" title="Retry">RT</button>
+                                </form>
+                                <button type="button" class="btn btn-action btn-log" title="View Log" onclick="viewLog({{ link.id }})">LG</button>
+                                <form method="POST" action="{{ url_for('delete_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-delete" title="Delete" onclick="return confirm('Delete this link?')">X</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">No links found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="logModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Download Log</h2>
+                <button class="modal-close" onclick="closeLog()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="logContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="pathModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Download Path</h2>
+                <button class="modal-close" onclick="closePathModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="pathForm">
+                    <div class="form-group">
+                        <label for="downloadPath">URL or Path</label>
+                        <input type="url" id="downloadPath" name="download_path" placeholder="https://example.com/files/user/file.mp4" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Path</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>
