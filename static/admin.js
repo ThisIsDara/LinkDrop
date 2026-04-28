@@ -15,6 +15,14 @@ function closeLog() {
     document.getElementById('logModal').classList.remove('show');
 }
 
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
 function openPathModal(linkId, currentPath) {
     document.getElementById('pathForm').action = `/admin/set_path/${linkId}`;
     document.getElementById('downloadPath').value = currentPath || '';

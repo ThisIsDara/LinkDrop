@@ -793,6 +793,25 @@ footer {
     color: white;
 }
 
+.btn-copy {
+    font-size: 0.6rem;
+    padding: 0.25rem 0.375rem;
+}
+
+.btn-copy:hover {
+    background: var(--info);
+    border-color: var(--info);
+    color: white;
+}
+
+.url-text {
+    cursor: pointer;
+}
+
+.url-text:hover {
+    color: var(--accent-primary);
+}
+
 @media (max-width: 768px) {
     .admin-table {
         font-size: 0.8rem;

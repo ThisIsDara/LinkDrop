@@ -84,7 +84,7 @@
                     <tr>
                         <td class="cell-id">#{{ link.id }}</td>
                         <td class="cell-url">
-                            <span class="url-text" title="{{ link.url }}">{{ link.url }}</span>
+                            <span class="url-text" title="{{ link.url }}" onclick="copyToClipboard('{{ link.url }}')">{{ link.url }}</span>
                         </td>
                         <td class="cell-note">
                             {% if link.note %}
@@ -99,6 +99,7 @@
                         <td class="cell-path">
                             {% if link.download_path %}
                             <a href="{{ link.download_path }}" target="_blank" class="path-link" title="{{ link.download_path }}">{{ link.download_path.split('/')[-1] }}</a>
+                            <button type="button" class="btn btn-action btn-copy" onclick="copyToClipboard('{{ link.download_path }}')" title="Copy Path">CP</button>
                             {% else %}
                             <button type="button" class="btn btn-action btn-path" onclick="openPathModal({{ link.id }}, '{{ link.download_path }}')">Set Path</button>
                             {% endif %}
