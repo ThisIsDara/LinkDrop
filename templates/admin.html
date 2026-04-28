@@ -96,13 +96,31 @@
                         <td class="cell-status">
                             <span class="badge badge-{{ link.status }}">{{ link.status }}</span>
                         </td>
-                        <td class="cell-path">
+<td class="cell-path">
                             {% if link.download_path %}
                             <a href="{{ link.download_path }}" target="_blank" class="path-link" title="{{ link.download_path }}">{{ link.download_path.split('/')[-1] }}</a>
                             <button type="button" class="btn btn-action btn-copy" data-url="{{ link.download_path }}" onclick="copyUrl(this)" title="Copy Path">CP</button>
-                            {% else %}
-                            <button type="button" class="btn btn-action btn-path" onclick="openPathModal({{ link.id }}, '{{ link.download_path }}')">Set Path</button>
                             {% endif %}
+                        </td>
+                        <td class="cell-actions">
+                            <div class="action-buttons">
+                                {% if not link.download_path %}
+                                <button type="button" class="btn btn-action btn-path" onclick="openPathModal({{ link.id }}, '{{ link.download_path }}')" title="Set Path">SP</button>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('download_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-download" title="Download Now">DL</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('mark_done', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-done" title="Mark Done">OK</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('retry_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-retry" title="Retry">RT</button>
+                                </form>
+                                <button type="button" class="btn btn-action btn-log" onclick="viewLog({{ link.id }})" title="View Log">LG</button>
+                                <form method="POST" action="{{ url_for('delete_link', link_id=link.id) }}" class="action-form">
+                                    <button type="submit" class="btn btn-action btn-delete" title="Delete" onclick="return confirm('Delete this link?')">X</button>
+                                </form>
+                            </div>
                         </td>
                         <td class="cell-date">
                             {{ link.submitted_at.strftime('%Y-%m-%d %H:%M') if link.submitted_at else '-' }}
