@@ -16,11 +16,38 @@ function closeLog() {
 }
 
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        }).catch(err => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
         alert('Copied to clipboard!');
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
+    } catch (err) {
+        alert('Failed to copy. Please copy manually: ' + text);
+    }
+    document.body.removeChild(textarea);
+}
+
+function copyUrl(element) {
+    const text = element.dataset.url || element.getAttribute('data-url');
+    if (text) {
+        copyToClipboard(text);
+    }
 }
 
 function openPathModal(linkId, currentPath) {
